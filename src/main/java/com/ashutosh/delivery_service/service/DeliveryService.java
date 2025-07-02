@@ -9,5 +9,6 @@ public interface DeliveryService {
     ResponseEntity<DeliveryDto> assignAgent(DeliveryDto dto);
     ResponseEntity<DeliveryDto> trackDelivery(Long orderId);
 	ResponseEntity<List<DeliveryDto>> getAllDeliveries();
-//	ResponseEntity<DeliveryDto> trackDelivery(Long orderId);
+    ResponseEntity<DeliveryDto> updateDeliveryStatus(Long deliveryId, String status);
+
 }

@@ -32,4 +32,11 @@ public class DeliveryController {
     public ResponseEntity<List<DeliveryDto>> getAllDeliveries() {
         return deliveryService.getAllDeliveries();
     }
+    @PutMapping("/{deliveryId}/status")
+    public ResponseEntity<DeliveryDto> updateStatus(
+            @PathVariable Long deliveryId,
+            @RequestParam("status") String status) {
+        return deliveryService.updateDeliveryStatus(deliveryId, status);
+    }
 }
+

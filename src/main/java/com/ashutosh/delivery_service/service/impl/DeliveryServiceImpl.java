@@ -107,4 +107,49 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         return ResponseEntity.ok(dtos);
     }
+    @Override
+    public ResponseEntity<DeliveryDto> updateDeliveryStatus(Long deliveryId, String status) {
+
+        // Fetch the delivery or throw exception
+        Delivery delivery = deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery not found with ID: " + deliveryId));
+
+        // Convert status string to enum
+        DeliveryStatus newStatus = DeliveryStatus.valueOf(status.toUpperCase());
+
+        // Prevent changing status if already DELIVERED
+        if (delivery.getStatus() == DeliveryStatus.DELIVERED) {
+            throw new IllegalStateException("Delivery is already marked as DELIVERED");
+        }
+
+        // Prevent invalid transition from IN_PROGRESS to anything other than DELIVERED
+        if (delivery.getStatus() == DeliveryStatus.IN_PROGRESS && newStatus != DeliveryStatus.DELIVERED) {
+            throw new IllegalStateException("Can only change from IN_PROGRESS to DELIVERED");
+        }
+
+        // Update and save delivery status
+        delivery.setStatus(newStatus);
+        Delivery updated = deliveryRepository.save(delivery);
+
+        // Update order status if delivery is delivered
+        if (newStatus == DeliveryStatus.DELIVERED) {
+            orderClient.updateOrderStatus(updated.getOrderId(), "DELIVERED");
+        }
+
+        // Fetch order details
+        OrderDto order = orderClient.getOrderById(updated.getOrderId());
+
+        // Build response
+        DeliveryDto dto = new DeliveryDto(
+                updated.getAgentId(),
+                updated.getOrderId(),
+                updated.getStatus(),
+                updated.getEstimatedTimeOfArrival(),
+                order
+        );
+
+        return ResponseEntity.ok(dto);
+    }
+
+
 }
